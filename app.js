@@ -5,7 +5,8 @@ const firebaseConfig = {
     projectId: "bankdbfirebase",
     storageBucket: "bankdbfirebase.appspot.com",
     messagingSenderId: "732737141001",
-    appId: "1:732737141001:web:6d4ac9a70dc68d39d3fbd8"
+    appId: "1:732737141001:web:6d4ac9a70dc68d39d3fbd8",
+    measurementId: "G-FXFE6CNBER"
 };
 
 // Initialize Firebase
