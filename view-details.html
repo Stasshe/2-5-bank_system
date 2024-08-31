@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>View Customer Details</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <h1>View Customer Details</h1>
+    <form id="view-details-form">
+        <input type="text" id="customer-id" placeholder="Enter your ID" required>
+        <button type="submit">View Details</button>
+    </form>
+    <div id="customer-details"></div>
+
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+    <script src="view-details.js"></script>
+</body>
+</html>
