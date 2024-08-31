@@ -32,7 +32,7 @@ document.getElementById('transaction-form').addEventListener('submit', function(
     e.preventDefault();
     const customerId = document.getElementById('customer-id').value.trim();
     const amount = parseFloat(document.getElementById('amount').value);
-    const incomeSource = document.getElementById('income-source').value; // プルダウンリストの値を取得
+    const incomeSource = document.getElementById('income-source').value;
 
     if (!customerId) {
         alert('お客様番号を入力してください。');
@@ -48,16 +48,21 @@ document.getElementById('transaction-form').addEventListener('submit', function(
     db.ref('customers/' + customerId + '/transactions').push({
         amount: amount,
         date: new Date().toISOString(),
-        source: incomeSource // 稼ぎの元を追加
+        source: incomeSource
     }).then(() => {
         // 残高を更新する
         return db.ref('customers/' + customerId + '/balance').transaction(function(currentBalance) {
             return (currentBalance || 0) + amount;
         });
-    }).then(() => {
+    }).then((result) => {
+        if (!result.committed) {
+            console.error("Transaction not committed:", result);
+            document.getElementById('transaction-status').innerText = 'Transaction failed';
+            return;
+        }
         document.getElementById('transaction-status').innerText = 'Transaction successful';
         displayCustomerData(customerId);
-        displayTopCustomers();  // トップ10ランキングも表示
+        displayTopCustomers();
     }).catch((error) => {
         console.error('Error:', error);
         document.getElementById('transaction-status').innerText = 'Transaction failed';
