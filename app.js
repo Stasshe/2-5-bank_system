@@ -1,4 +1,3 @@
-// Firebaseの初期化
 const firebaseConfig = {
     apiKey: "AIzaSyBeBgPZmKE-qRm_TANkWK2_4iBgIjMPNys",
     authDomain: "bankdbfirebase.firebaseapp.com",
@@ -10,17 +9,30 @@ const firebaseConfig = {
     measurementId: "G-FXFE6CNBER"
 };
 
-
+// Initialize Firebase
 firebase.initializeApp(firebaseConfig);
+
 const db = firebase.database();
 
-// トランザクション処理
+document.addEventListener('DOMContentLoaded', function() {
+    // URLの最後のパラメータを取得し、プルダウンのデフォルトに設定
+    const urlParams = new URLSearchParams(window.location.search);
+    const sourceFromUrl = urlParams.get('source');
+    
+    if (sourceFromUrl) {
+        const selectElement = document.getElementById('income-source');
+        const option = Array.from(selectElement.options).find(opt => opt.value === sourceFromUrl);
+        if (option) {
+            selectElement.value = sourceFromUrl;
+        }
+    }
+});
+
 document.getElementById('transaction-form').addEventListener('submit', function(e) {
     e.preventDefault();
-
     const customerId = document.getElementById('customer-id').value.trim();
     const amount = parseFloat(document.getElementById('amount').value);
-    const incomeSource = document.getElementById('income-source').value;
+    const incomeSource = document.getElementById('income-source').value; // プルダウンリストの値を取得
 
     if (!customerId) {
         alert('お客様番号を入力してください。');
@@ -32,75 +44,52 @@ document.getElementById('transaction-form').addEventListener('submit', function(
         return;
     }
 
-    const customerRef = db.ref('customers/' + customerId);
-
-    customerRef.child('balance').transaction(function(currentBalance) {
-        if (currentBalance === null) {
-            return amount;
-        }
-        return currentBalance + amount;
-    }).then(result => {
-        if (!result.committed) {
-            console.error("Transaction not committed:", result);
-            document.getElementById('transaction-status').innerText = 'Transaction failed';
-            return Promise.reject('Transaction not committed');
-        }
-        return customerRef.child('transactions').push({
-            amount: amount,
-            date: new Date().toISOString(),
-            source: incomeSource
+    // トランザクションデータを保存する
+    db.ref('customers/' + customerId + '/transactions').push({
+        amount: amount,
+        date: new Date().toISOString(),
+        source: incomeSource // 稼ぎの元を追加
+    }).then(() => {
+        // 残高を更新する
+        return db.ref('customers/' + customerId + '/balance').transaction(function(currentBalance) {
+            return (currentBalance || 0) + amount;
         });
     }).then(() => {
         document.getElementById('transaction-status').innerText = 'Transaction successful';
         displayCustomerData(customerId);
-        displayTopCustomers();
+        displayTopCustomers();  // トップ10ランキングも表示
     }).catch((error) => {
-        console.error('An error occurred:', error);
+        console.error('Error:', error);
         document.getElementById('transaction-status').innerText = 'Transaction failed';
     });
 });
 
-// 顧客データの表示
-function displayCustomerData(customerId) {
-    const customerRef = db.ref('customers/' + customerId);
-    customerRef.once('value', (snapshot) => {
-        const customerData = snapshot.val();
-        if (customerData) {
-            document.getElementById('customer-balance').innerText = 'Balance: ' + customerData.balance;
-            const transactionsList = document.getElementById('transactions-list');
-            transactionsList.innerHTML = '';
-            for (let key in customerData.transactions) {
-                const transaction = customerData.transactions[key];
-                const li = document.createElement('li');
-                li.innerText = `Amount: ${transaction.amount}, Date: ${transaction.date}, Source: ${transaction.source}`;
-                transactionsList.appendChild(li);
-            }
-        }
-    });
-}
 
-// トップ10の顧客ランキング表示
+// トップ10ランキングを表示する
 function displayTopCustomers() {
-    const customersRef = db.ref('customers');
-    customersRef.orderByChild('balance').limitToLast(10).once('value', (snapshot) => {
-        const topCustomers = [];
+    const topCustomersElement = document.getElementById('top-customers');
+    
+    db.ref('customers').orderByChild('balance').limitToLast(10).once('value').then(snapshot => {
+        const customers = [];
         snapshot.forEach(childSnapshot => {
             const customerData = childSnapshot.val();
-            topCustomers.push({
-                id: childSnapshot.key,
-                balance: customerData.balance,
-                nickname: customerData.nickname || 'Anonymous'
-            });
+            const balance = customerData.balance || 0;
+            const nickname = customerData.nickname || 'No nickname';  // ニックネームを取得
+            customers.push({ nickname, balance });
         });
 
-        topCustomers.reverse(); // 高い順に並べ替え
+        // 残高で降順にソート
+        customers.sort((a, b) => b.balance - a.balance);
 
-        const topList = document.getElementById('top-customers-list');
-        topList.innerHTML = '';
-        topCustomers.forEach(customer => {
-            const li = document.createElement('li');
-            li.innerText = `Nickname: ${customer.nickname}, Balance: ${customer.balance}`;
-            topList.appendChild(li);
-        });
+        // トップ10を表示 (IDを非表示)
+        topCustomersElement.innerHTML = customers.map((customer, index) => `
+            <li>${index + 1 + "位" }, 名前: ${customer.nickname}, 預金額: ${customer.balance}</li>
+        `).join('');
+    }).catch((error) => {
+        console.error('Error fetching top customers:', error);
+        topCustomersElement.innerHTML = `<p>Error fetching top customers.</p>`;
     });
 }
+
+// 初期表示時にトップ10を表示
+displayTopCustomers();
