@@ -66,7 +66,7 @@ function displayTopCustomers() {
 
         // トップ10を表示 (IDを非表示)
         topCustomersElement.innerHTML = customers.map((customer, index) => `
-            <li>${index + 1 + "位" }, Nickname: ${customer.nickname}, Balance: ${customer.balance}</li>
+            <li>${index + 1 + "位" }, Nickname: ${customer.nickname}, 預金額: ${customer.balance}</li>
         `).join('');
     }).catch((error) => {
         console.error('Error fetching top customers:', error);
