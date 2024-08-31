@@ -45,21 +45,23 @@ document.getElementById('transaction-form').addEventListener('submit', function(
     }
 
     // トランザクションデータを保存する
-    db.ref('customers/' + customerId + '/balance').transaction(function(currentBalance) {
-        if (currentBalance === null) {
-            // 初めての取引の場合、balanceがnullかもしれません
-            return amount;
-        }
-        return currentBalance + amount;
+    db.ref('customers/' + customerId + '/transactions').push({
+        amount: amount,
+        date: new Date().toISOString(),
+        source: incomeSource // 稼ぎの元を追加
+    }).then(() => {
+        // 残高を更新する
+        return db.ref('customers/' + customerId + '/balance').transaction(function(currentBalance) {
+            return (currentBalance || 0) + amount;
+        });
     }).then(() => {
         document.getElementById('transaction-status').innerText = 'Transaction successful';
         displayCustomerData(customerId);
         displayTopCustomers();  // トップ10ランキングも表示
     }).catch((error) => {
-        console.error('Transaction error:', error);
+        console.error('Error:', error);
         document.getElementById('transaction-status').innerText = 'Transaction failed';
     });
-
 });
 
 // トップ10ランキングを表示する
