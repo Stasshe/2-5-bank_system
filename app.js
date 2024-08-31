@@ -8,25 +8,31 @@ const firebaseConfig = {
     appId: "1:732737141001:web:6d4ac9a70dc68d39d3fbd8",
     measurementId: "G-FXFE6CNBER"
 };
-const firebaseConfig = {
-    apiKey: "YOUR_API_KEY",
-    authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
-    databaseURL: "https://YOUR_PROJECT_ID.firebaseio.com",
-    projectId: "YOUR_PROJECT_ID",
-    storageBucket: "YOUR_PROJECT_ID.appspot.com",
-    messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-    appId: "YOUR_APP_ID"
-};
 
 // Initialize Firebase
 firebase.initializeApp(firebaseConfig);
 
 const db = firebase.database();
 
+document.addEventListener('DOMContentLoaded', function() {
+    // URLの最後のパラメータを取得し、プルダウンのデフォルトに設定
+    const urlParams = new URLSearchParams(window.location.search);
+    const sourceFromUrl = urlParams.get('source');
+    
+    if (sourceFromUrl) {
+        const selectElement = document.getElementById('income-source');
+        const option = Array.from(selectElement.options).find(opt => opt.value === sourceFromUrl);
+        if (option) {
+            selectElement.value = sourceFromUrl;
+        }
+    }
+});
+
 document.getElementById('transaction-form').addEventListener('submit', function(e) {
     e.preventDefault();
     const customerId = document.getElementById('customer-id').value.trim();
     const amount = parseFloat(document.getElementById('amount').value);
+    const incomeSource = document.getElementById('income-source').value; // プルダウンリストの値を取得
 
     if (!customerId) {
         alert('お客様番号を入力してください。');
@@ -41,7 +47,8 @@ document.getElementById('transaction-form').addEventListener('submit', function(
     // トランザクションデータを保存する
     db.ref('customers/' + customerId + '/transactions').push({
         amount: amount,
-        date: new Date().toISOString() // 取引日時を追加
+        date: new Date().toISOString(),
+        source: incomeSource // 稼ぎの元を追加
     }).then(() => {
         // 残高を更新する
         return db.ref('customers/' + customerId + '/balance').transaction(function(currentBalance) {
@@ -56,7 +63,6 @@ document.getElementById('transaction-form').addEventListener('submit', function(
         document.getElementById('transaction-status').innerText = 'Transaction failed';
     });
 });
-
 
 // トップ10ランキングを表示する
 function displayTopCustomers() {
