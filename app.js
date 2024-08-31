@@ -27,6 +27,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 });
+
 document.getElementById('transaction-form').addEventListener('submit', function(e) {
     e.preventDefault();
     const customerId = document.getElementById('customer-id').value.trim();
@@ -54,6 +55,7 @@ document.getElementById('transaction-form').addEventListener('submit', function(
             return (currentBalance || 0) + amount;
         });
     }).then((result) => {
+        // トランザクションがコミットされたかどうかを確認
         if (!result.committed) {
             console.error("Transaction not committed:", result);
             document.getElementById('transaction-status').innerText = 'Transaction failed';
