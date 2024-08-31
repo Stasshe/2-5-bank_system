@@ -12,12 +12,19 @@
     <form id="transaction-form">
         <input type="text" id="customer-id" placeholder="IDを半角数字で入力" required>
         <input type="number" id="amount" placeholder="取引金額を半角数字で入力" required>
+        <!-- プルダウンリストを追加 -->
+        <select id="income-source">
+            <option value="salary">Salary</option>
+            <option value="investment">Investment</option>
+            <option value="gift">Gift</option>
+            <option value="other">Other</option>
+        </select>
         <button type="submit">Submit</button>
     </form>
     <h5>取引金額は残高のことではありません。例えば残高500で、そこから62稼いだ場合は、62と入力・139負けた場合は、-139と入力してください。</h5>
     <div id="transaction-status"></div>
     <h2>Top 10 Customers by Balance</h2>
-    <div id="top-customers"></div>
+    <p id="top-customers"></p>
 
     <!-- Firebase App (バージョン8) -->
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
