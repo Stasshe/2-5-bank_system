@@ -27,12 +27,12 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 });
-
 document.getElementById('transaction-form').addEventListener('submit', function(e) {
     e.preventDefault();
+    
     const customerId = document.getElementById('customer-id').value.trim();
     const amount = parseFloat(document.getElementById('amount').value);
-    const incomeSource = document.getElementById('income-source').value; // プルダウンリストの値を取得
+    const incomeSource = document.getElementById('income-source').value;
 
     if (!customerId) {
         alert('お客様番号を入力してください。');
@@ -44,22 +44,31 @@ document.getElementById('transaction-form').addEventListener('submit', function(
         return;
     }
 
-    // トランザクションデータを保存する
-    db.ref('customers/' + customerId + '/transactions').push({
-        amount: amount,
-        date: new Date().toISOString(),
-        source: incomeSource // 稼ぎの元を追加
-    }).then(() => {
-        // 残高を更新する
-        return db.ref('customers/' + customerId + '/balance').transaction(function(currentBalance) {
-            return (currentBalance || 0) + amount;
+    const customerRef = db.ref('customers/' + customerId);
+
+    customerRef.child('balance').transaction(function(currentBalance) {
+        if (currentBalance === null) {
+            return amount;
+        }
+        return currentBalance + amount;
+    }).then(result => {
+        if (!result.committed) {
+            console.error("Transaction not committed");
+            document.getElementById('transaction-status').innerText = 'Transaction failed';
+            return;
+        }
+        // 取引情報を保存
+        return customerRef.child('transactions').push({
+            amount: amount,
+            date: new Date().toISOString(),
+            source: incomeSource // 稼ぎ元データを保存
         });
     }).then(() => {
         document.getElementById('transaction-status').innerText = 'Transaction successful';
         displayCustomerData(customerId);
-        displayTopCustomers();  // トップ10ランキングも表示
+        displayTopCustomers();
     }).catch((error) => {
-        console.error('Error:', error);
+        console.error('Transaction error:', error);
         document.getElementById('transaction-status').innerText = 'Transaction failed';
     });
 });
