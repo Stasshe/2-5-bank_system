@@ -8,6 +8,7 @@ const firebaseConfig = {
     appId: "1:732737141001:web:6d4ac9a70dc68d39d3fbd8",
     measurementId: "G-FXFE6CNBER"
 };
+
 // Initialize Firebase
 firebase.initializeApp(firebaseConfig);
 
@@ -39,7 +40,6 @@ document.getElementById('transaction-form').addEventListener('submit', function(
         });
     }).then(() => {
         document.getElementById('transaction-status').innerText = 'Transaction successful';
-        // 送信後にデータを表示
         displayCustomerData(customerId);
         displayTopCustomers();  // トップ10ランキングも表示
     }).catch((error) => {
@@ -48,33 +48,6 @@ document.getElementById('transaction-form').addEventListener('submit', function(
     });
 });
 
-// データの表示
-function displayCustomerData(customerId) {
-    const customerDataElement = document.getElementById('customer-data');
-    db.ref('customers/' + customerId).once('value').then((snapshot) => {
-        const data = snapshot.val();
-        if (data) {
-            let transactions = '';
-            if (data.transactions) {
-                transactions = Object.values(data.transactions).map(transaction => {
-                    return `<li>Amount: ${transaction.amount}, Date: ${transaction.date}</li>`;
-                }).join('');
-            }
-            customerDataElement.innerHTML = `
-                <h3>Customer ID: ${customerId}</h3>
-                <p>Balance: ${data.balance || 0}</p>
-                <h4>Transactions:</h4>
-                <ul>${transactions}</ul>
-            `;
-        } else {
-            customerDataElement.innerHTML = `<p>No data found for Customer ID: ${customerId}</p>`;
-        }
-    }).catch((error) => {
-        console.error('Error fetching data:', error);
-        customerDataElement.innerHTML = `<p>Error fetching data for Customer ID: ${customerId}</p>`;
-    });
-}
-
 // トップ10ランキングを表示する
 function displayTopCustomers() {
     const topCustomersElement = document.getElementById('top-customers');
@@ -82,17 +55,16 @@ function displayTopCustomers() {
     db.ref('customers').orderByChild('balance').limitToLast(10).once('value').then(snapshot => {
         const customers = [];
         snapshot.forEach(childSnapshot => {
-            const customerId = childSnapshot.key;
             const customerData = childSnapshot.val();
             const balance = customerData.balance || 0;
             const nickname = customerData.nickname || 'No nickname';  // ニックネームを取得
-            customers.push({ customerId, nickname, balance });
+            customers.push({ nickname, balance });
         });
 
         // 残高で降順にソート
         customers.sort((a, b) => b.balance - a.balance);
 
-        // トップ10を表示
+        // トップ10を表示 (IDを非表示)
         topCustomersElement.innerHTML = customers.map((customer, index) => `
             <li>Rank ${index + 1}: Nickname: ${customer.nickname}, Balance: ${customer.balance}</li>
         `).join('');
