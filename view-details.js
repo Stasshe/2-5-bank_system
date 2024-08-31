@@ -31,13 +31,28 @@ document.getElementById('view-details-form').addEventListener('submit', function
             const nickname = customerData.nickname || 'No nickname';
             const balance = customerData.balance || 0;
             const transactions = customerData.transactions || {};
-            const lastTransactionDate = getLastTransactionDate(transactions);
+
+            let transactionHistory = '';
+            if (Object.keys(transactions).length > 0) {
+                transactionHistory = '<h3>Transaction History:</h3><ul>';
+                Object.values(transactions).forEach(transaction => {
+                    transactionHistory += `
+                        <li>
+                            <strong>Date:</strong> ${transaction.date} |
+                            <strong>Amount:</strong> ${transaction.amount}
+                        </li>
+                    `;
+                });
+                transactionHistory += '</ul>';
+            } else {
+                transactionHistory = '<p>No transactions found.</p>';
+            }
 
             document.getElementById('customer-details').innerHTML = `
                 <h2>Customer Details</h2>
                 <p><strong>Nickname:</strong> ${nickname}</p>
                 <p><strong>Balance:</strong> ${balance}</p>
-                <p><strong>Last Transaction Date:</strong> ${lastTransactionDate}</p>
+                ${transactionHistory}
             `;
         } else {
             document.getElementById('customer-details').innerHTML = `<p>No customer found with ID: ${customerId}</p>`;
@@ -47,16 +62,3 @@ document.getElementById('view-details-form').addEventListener('submit', function
         document.getElementById('customer-details').innerHTML = `<p>Error fetching customer data.</p>`;
     });
 });
-
-// 最後の取引日時を取得する関数
-function getLastTransactionDate(transactions) {
-    let lastDate = 'No transactions';
-    
-    Object.values(transactions).forEach(transaction => {
-        if (!lastDate || transaction.date > lastDate) {
-            lastDate = transaction.date;
-        }
-    });
-
-    return lastDate;
-}
