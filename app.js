@@ -8,7 +8,6 @@ const firebaseConfig = {
     appId: "1:732737141001:web:6d4ac9a70dc68d39d3fbd8",
     measurementId: "G-FXFE6CNBER"
 };
-
 // Initialize Firebase
 firebase.initializeApp(firebaseConfig);
 
@@ -42,6 +41,7 @@ document.getElementById('transaction-form').addEventListener('submit', function(
         document.getElementById('transaction-status').innerText = 'Transaction successful';
         // 送信後にデータを表示
         displayCustomerData(customerId);
+        displayTopCustomers();  // トップ10ランキングも表示
     }).catch((error) => {
         console.error('Error:', error);
         document.getElementById('transaction-status').innerText = 'Transaction failed';
@@ -74,3 +74,32 @@ function displayCustomerData(customerId) {
         customerDataElement.innerHTML = `<p>Error fetching data for Customer ID: ${customerId}</p>`;
     });
 }
+
+// トップ10ランキングを表示する
+function displayTopCustomers() {
+    const topCustomersElement = document.getElementById('top-customers');
+    
+    db.ref('customers').orderByChild('balance').limitToLast(10).once('value').then(snapshot => {
+        const customers = [];
+        snapshot.forEach(childSnapshot => {
+            const customerId = childSnapshot.key;
+            const customerData = childSnapshot.val();
+            const balance = customerData.balance || 0;
+            customers.push({ customerId, balance });
+        });
+
+        // 残高で降順にソート
+        customers.sort((a, b) => b.balance - a.balance);
+
+        // トップ10を表示
+        topCustomersElement.innerHTML = customers.map((customer, index) => `
+            <li>Rank ${index + 1}: Customer ID: ${customer.customerId}, Balance: ${customer.balance}</li>
+        `).join('');
+    }).catch((error) => {
+        console.error('Error fetching top customers:', error);
+        topCustomersElement.innerHTML = `<p>Error fetching top customers.</p>`;
+    });
+}
+
+// 初期表示時にトップ10を表示
+displayTopCustomers();
