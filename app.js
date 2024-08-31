@@ -61,12 +61,12 @@ document.getElementById('transaction-form').addEventListener('submit', function(
             document.getElementById('transaction-status').innerText = 'Transaction failed';
             return;
         }
-        document.getElementById('transaction-status').innerText = 'Transaction successful';
+        document.getElementById('transaction-status').innerText = '1Transaction successful';
         displayCustomerData(customerId);
         displayTopCustomers();
     }).catch((error) => {
         console.error('Error:', error);
-        document.getElementById('transaction-status').innerText = 'Transaction 56successful';
+        document.getElementById('transaction-status').innerText = '2Transaction successful';
     });
 });
 
