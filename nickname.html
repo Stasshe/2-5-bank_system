@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register Nickname</title>
+</head>
+<body>
+    <h1>Register Your Nickname</h1>
+    <form id="nickname-form">
+        <input type="text" id="customer-id" placeholder="Enter your ID" required>
+        <input type="text" id="nickname" placeholder="Enter your nickname" required>
+        <button type="submit">Submit</button>
+    </form>
+    <div id="nickname-status"></div>
+
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+    <script src="nickname.js"></script>
+</body>
+</html>
