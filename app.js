@@ -15,13 +15,19 @@ const db = firebase.database();
 
 document.getElementById('transaction-form').addEventListener('submit', function(e) {
     e.preventDefault();
-    const amount = document.getElementById('amount').value;
+    const customerId = document.getElementById('customer-id').value;
+    const amount = parseFloat(document.getElementById('amount').value);
 
-    db.ref('transactions').push({
+    // トランザクションデータを保存する
+    db.ref('customers/' + customerId + '/transactions').push({
         amount: amount,
         date: new Date().toISOString()
     });
 
+    // 残高を更新する
+    db.ref('customers/' + customerId + '/balance').transaction(function(currentBalance) {
+        return (currentBalance || 0) + amount;
+    });
+
     document.getElementById('transaction-status').innerText = 'Transaction successful';
 });
-
