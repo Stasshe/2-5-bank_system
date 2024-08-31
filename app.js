@@ -45,18 +45,22 @@ document.getElementById('transaction-form').addEventListener('submit', function(
     }
 
     // トランザクションデータを保存する
-    db.ref('customers/' + customerId + '/balance').transaction(function(currentBalance) {
-        return (currentBalance || 0) + amount;
-    }, function(error, committed, snapshot) {
-        if (error) {
-            console.error('Transaction failed due to error:', error);
-        } else if (!committed) {
-            console.error('Transaction was not committed');
-        } else {
-            console.log('Transaction committed successfully');
-        }
-        // トランザクションが完了した後の処理
+    db.ref('customers/' + customerId + '/transactions').push({
+        amount: amount,
+        date: new Date().toISOString(),
+        source: incomeSource
     }).then(() => {
+        // 残高を更新する
+        return db.ref('customers/' + customerId + '/balance').transaction(function(currentBalance) {
+            return (currentBalance || 0) + amount;
+        });
+    }).then((result) => {
+        // トランザクションがコミットされたかどうかを確認
+        if (!result.committed) {
+            console.error("Transaction not committed:", result);
+            document.getElementById('transaction-status').innerText = 'Transaction failed';
+            return;
+        }
         document.getElementById('transaction-status').innerText = 'Transaction successful';
         displayCustomerData(customerId);
         displayTopCustomers();
