@@ -1,0 +1,2 @@
+よくここまで辿り着きましたね。
+フロントエンドはgithub.page、バックエンドはfirebaseのRealtime.dataで構築しています。
