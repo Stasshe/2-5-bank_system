@@ -8,6 +8,15 @@ const firebaseConfig = {
     appId: "1:732737141001:web:6d4ac9a70dc68d39d3fbd8",
     measurementId: "G-FXFE6CNBER"
 };
+const firebaseConfig = {
+    apiKey: "YOUR_API_KEY",
+    authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+    databaseURL: "https://YOUR_PROJECT_ID.firebaseio.com",
+    projectId: "YOUR_PROJECT_ID",
+    storageBucket: "YOUR_PROJECT_ID.appspot.com",
+    messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+    appId: "YOUR_APP_ID"
+};
 
 // Initialize Firebase
 firebase.initializeApp(firebaseConfig);
@@ -32,7 +41,7 @@ document.getElementById('transaction-form').addEventListener('submit', function(
     // トランザクションデータを保存する
     db.ref('customers/' + customerId + '/transactions').push({
         amount: amount,
-        date: new Date().toISOString()
+        date: new Date().toISOString() // 取引日時を追加
     }).then(() => {
         // 残高を更新する
         return db.ref('customers/' + customerId + '/balance').transaction(function(currentBalance) {
@@ -47,6 +56,7 @@ document.getElementById('transaction-form').addEventListener('submit', function(
         document.getElementById('transaction-status').innerText = 'Transaction failed';
     });
 });
+
 
 // トップ10ランキングを表示する
 function displayTopCustomers() {
