@@ -27,7 +27,6 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 });
-
 document.getElementById('transaction-form').addEventListener('submit', function(e) {
     e.preventDefault();
     const customerId = document.getElementById('customer-id').value.trim();
@@ -68,7 +67,6 @@ document.getElementById('transaction-form').addEventListener('submit', function(
         document.getElementById('transaction-status').innerText = 'Transaction failed';
     });
 });
-
 
 // トップ10ランキングを表示する
 function displayTopCustomers() {
