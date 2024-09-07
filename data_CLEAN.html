@@ -33,13 +33,19 @@
                 const customerId = childSnapshot.key;
                 const normalizedCustomerId = parseInt(customerId, 10).toString(); // 0を除去して自然数に変換
 
+                console.log(`Processing customerId: ${customerId}, normalized to: ${normalizedCustomerId}`);
+
                 if (customerId !== normalizedCustomerId) {
                     // 正しいIDにデータを移動する
                     updates[`customers/${normalizedCustomerId}`] = childSnapshot.val();
                     // 元のIDのデータを削除する
                     updates[`customers/${customerId}`] = null;
+
+                    console.log(`Scheduled update for customerId: ${customerId}`);
                 }
             });
+
+            console.log('Updates:', updates);
 
             // Firebaseを更新
             return db.ref().update(updates);
