@@ -64,7 +64,7 @@ document.getElementById('transaction-form').addEventListener('submit', function(
         displayTopCustomers();
     }).catch((error) => {
         console.error('Error:', error);
-        document.getElementById('transaction-status').innerText = 'Transaction failed';
+        document.getElementById('transaction-status').innerText = 'Transaction success3';
     });
 });
 
