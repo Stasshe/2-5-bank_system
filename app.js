@@ -27,12 +27,16 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 });
-
+//0------------------------------------------------------------------------------------
 document.getElementById('transaction-form').addEventListener('submit', function(e) {
     e.preventDefault();
-    const customerId = document.getElementById('customer-id').value.trim();
+    
+    // お客様IDの先頭の0を無視して統一
+    let customerId = document.getElementById('customer-id').value.trim();
+    customerId = parseInt(customerId, 10).toString();  // 0を無視して自然数に変換
+    
     const amount = parseFloat(document.getElementById('amount').value);
-    const incomeSource = document.getElementById('income-source').value;
+    const incomeSource = document.getElementById('income-source').value; 
 
     if (!customerId) {
         alert('お客様番号を入力してください。');
@@ -54,19 +58,13 @@ document.getElementById('transaction-form').addEventListener('submit', function(
         return db.ref('customers/' + customerId + '/balance').transaction(function(currentBalance) {
             return (currentBalance || 0) + amount;
         });
-    }).then((result) => {
-        // トランザクションがコミットされたかどうかを確認
-        if (!result.committed) {
-            console.error("Transaction not committed:", result);
-            document.getElementById('transaction-status').innerText = 'Transaction failed';
-            return;
-        }
-        document.getElementById('transaction-status').innerText = '1Transaction successful';
+    }).then(() => {
+        document.getElementById('transaction-status').innerText = 'Transaction successful';
         displayCustomerData(customerId);
         displayTopCustomers();
     }).catch((error) => {
         console.error('Error:', error);
-        document.getElementById('transaction-status').innerText = '2Transaction successful';
+        document.getElementById('transaction-status').innerText = 'Transaction failed';
     });
 });
 
