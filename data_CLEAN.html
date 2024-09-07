@@ -3,64 +3,70 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ID番号修正ツール</title>
+    <title>エラーメッセージ表示</title>
+    <style>
+        #error-message {
+            color: red;
+            font-weight: bold;
+        }
+    </style>
 </head>
 <body>
-    <h1>ID番号修正ツール</h1>
-    <p>このページを開くと、自動的にFirebaseデータベース内の顧客IDが修正されます。</p>
+    <h1>顧客IDの修正</h1>
+    <p id="error-message"></p> <!-- エラーメッセージを表示する場所 -->
 
     <script>
-    // Firebaseの設定コード
-    const firebaseConfig = {
-        apiKey: "AIzaSyBeBgPZmKE-qRm_TANkWK2_4iBgIjMPNys",
-        authDomain: "bankdbfirebase.firebaseapp.com",
-        databaseURL: "https://bankdbfirebase-default-rtdb.firebaseio.com",
-        projectId: "bankdbfirebase",
-        storageBucket: "bankdbfirebase.appspot.com",
-        messagingSenderId: "732737141001",
-        appId: "1:732737141001:web:6d4ac9a70dc68d39d3fbd8",
-        measurementId: "G-FXFE6CNBER"
-    };
-    // Firebaseの初期化
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.database();
+        // Firebaseの設定コード
+        const firebaseConfig = {
+            apiKey: "AIzaSyBeBgPZmKE-qRm_TANkWK2_4iBgIjMPNys",
+            authDomain: "bankdbfirebase.firebaseapp.com",
+            databaseURL: "https://bankdbfirebase-default-rtdb.firebaseio.com",
+            projectId: "bankdbfirebase",
+            storageBucket: "bankdbfirebase.appspot.com",
+            messagingSenderId: "732737141001",
+            appId: "1:732737141001:web:6d4ac9a70dc68d39d3fbd8",
+            measurementId: "G-FXFE6CNBER"
+        };
+        // Firebaseの初期化
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
 
-    // 顧客IDを修正する関数
-    function fixCustomerIds() {
-        db.ref('customers').once('value').then(snapshot => {
-            const updates = {};
-            snapshot.forEach(childSnapshot => {
-                const customerId = childSnapshot.key;
-                const normalizedCustomerId = parseInt(customerId, 10).toString(); // 0を除去して自然数に変換
+        // エラーメッセージを表示する関数
+        function displayError(message) {
+            const errorMessageElement = document.getElementById('error-message');
+            errorMessageElement.textContent = message; // ページにエラーメッセージを表示
+        }
 
-                console.log(`Processing customerId: ${customerId}, normalized to: ${normalizedCustomerId}`);
+        // 顧客IDを修正する関数
+        function fixCustomerIds() {
+            db.ref('customers').once('value').then(snapshot => {
+                const updates = {};
+                snapshot.forEach(childSnapshot => {
+                    const customerId = childSnapshot.key;
+                    const normalizedCustomerId = parseInt(customerId, 10).toString(); // 0を除去して自然数に変換
 
-                if (customerId !== normalizedCustomerId) {
-                    // 正しいIDにデータを移動する
-                    updates[`customers/${normalizedCustomerId}`] = childSnapshot.val();
-                    // 元のIDのデータを削除する
-                    updates[`customers/${customerId}`] = null;
+                    if (customerId !== normalizedCustomerId) {
+                        // 正しいIDにデータを移動する
+                        updates[`customers/${normalizedCustomerId}`] = childSnapshot.val();
+                        // 元のIDのデータを削除する
+                        updates[`customers/${customerId}`] = null;
+                    }
+                });
 
-                    console.log(`Scheduled update for customerId: ${customerId}`);
-                }
+                // Firebaseを更新
+                return db.ref().update(updates);
+            }).then(() => {
+                alert('顧客IDの修正が完了しました。');
+            }).catch((error) => {
+                console.error('Error normalizing customer IDs:', error);
+                displayError(`エラーが発生しました: ${error.message}`); // エラーメッセージを表示
             });
+        }
 
-            console.log('Updates:', updates);
-
-            // Firebaseを更新
-            return db.ref().update(updates);
-        }).then(() => {
-            console.log('All customer IDs have been normalized.');
-            alert('顧客IDの修正が完了しました。');
-        }).catch((error) => {
-            console.error('Error normalizing customer IDs:', error);
+        // ページ読み込み時に実行
+        document.addEventListener('DOMContentLoaded', function() {
+            fixCustomerIds();
         });
-    }
-
-    // ページ読み込み時に実行
-    document.addEventListener('DOMContentLoaded', function() {
-        fixCustomerIds();
-    });
     </script>
 </body>
 </html>
