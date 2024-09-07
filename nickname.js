@@ -13,23 +13,33 @@ firebase.initializeApp(firebaseConfig);
 
 const db = firebase.database();
 
+
+
+
+
 document.getElementById('nickname-form').addEventListener('submit', function(e) {
     e.preventDefault();
-    const customerId = document.getElementById('customer-id').value.trim();
+    
+    let customerId = document.getElementById('customer-id').value.trim();
     const nickname = document.getElementById('nickname').value.trim();
 
     if (!customerId || !nickname) {
-        alert('IDとニックネームを入力してください。');
+        alert('お客様番号とニックネームを入力してください。');
         return;
     }
 
-    // ニックネームを保存する
+    // 顧客IDの正規化（頭の0を消去）
+    customerId = parseInt(customerId, 10).toString();
+    console.log(`正規化された顧客ID: ${customerId}`);
+
+    // ニックネームをFirebaseに保存
     db.ref('customers/' + customerId + '/nickname').set(nickname)
     .then(() => {
-        document.getElementById('nickname-status').innerText = 'Nickname registered successfully';
+        document.getElementById('nickname-status').innerText = 'ニックネームが正常に登録されました';
+        console.log('ニックネームの登録に成功しました');
     })
     .catch((error) => {
-        console.error('Error:', error);
-        document.getElementById('nickname-status').innerText = 'Failed to register nickname';
+        console.error('ニックネームの登録中にエラーが発生しました:', error);
+        document.getElementById('nickname-status').innerText = 'ニックネームの登録に失敗しました';
     });
 });
