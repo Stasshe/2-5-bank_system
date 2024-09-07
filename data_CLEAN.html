@@ -38,31 +38,45 @@
         }
 
         // 顧客IDを修正する関数
-        function fixCustomerIds() {
+                function fixCustomerIdsAndBranchData() {
+            console.log('顧客IDと関連データの修正プロセスを開始します'); 
             db.ref('customers').once('value').then(snapshot => {
+                console.log('Firebaseから顧客データを取得しました。');
                 const updates = {};
                 snapshot.forEach(childSnapshot => {
                     const customerId = childSnapshot.key;
-                    const normalizedCustomerId = parseInt(customerId, 10).toString(); // 0を除去して自然数に変換
+                    const customerData = childSnapshot.val();
+
+                    // 顧客IDの正規化（頭の0を消去）
+                    const normalizedCustomerId = parseInt(customerId, 10).toString();
+                    console.log(`元のID: ${customerId}, 正規化されたID: ${normalizedCustomerId}`);
 
                     if (customerId !== normalizedCustomerId) {
-                        // 正しいIDにデータを移動する
-                        updates[`customers/${normalizedCustomerId}`] = childSnapshot.val();
-                        // 元のIDのデータを削除する
+                        // 顧客データを正規化されたIDに移動
+                        updates[`customers/${normalizedCustomerId}`] = customerData;
+                        // トランザクションやbranchデータの移行
+                        if (customerData.transactions) {
+                            updates[`customers/${normalizedCustomerId}/transactions`] = customerData.transactions;
+                        }
+                        if (customerData.branch) {
+                            updates[`customers/${normalizedCustomerId}/branch`] = customerData.branch;
+                        }
+                        // 元のIDのデータを削除
                         updates[`customers/${customerId}`] = null;
                     }
                 });
 
-                // Firebaseを更新
+                // Firebaseを一括更新
+                console.log('更新するデータ:', updates);
                 return db.ref().update(updates);
             }).then(() => {
-                alert('顧客IDの修正が完了しました。');
+                console.log('顧客IDと関連データの修正が成功しました');
+                alert('顧客IDと関連データの修正が完了しました。');
             }).catch((error) => {
-                console.error('Error normalizing customer IDs:', error);
-                displayError(`エラーが発生しました: ${error.message}`); // エラーメッセージを表示
+                console.error('顧客IDと関連データの修正中にエラーが発生しました:', error);
+                alert(`エラーが発生しました: ${error.message}`);
             });
         }
-
         // ページ読み込み時に実行
         document.addEventListener('DOMContentLoaded', function() {
             fixCustomerIds();
